@@ -501,7 +501,7 @@ services:
     networks:
       - supabase_internal
     ports:
-      - ${POSTGRES_PORT}:5432
+      - ${POSTGRES_EXTERNAL_PORT}:5432
       - ${POOLER_PROXY_PORT_TRANSACTION}:6543
     volumes:
       - ./volumes/pooler/pooler.exs:/etc/pooler/pooler.exs:ro,z
