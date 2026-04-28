@@ -12,8 +12,6 @@ services:
   studio:
     image: supabase/studio:2025.12.17-sha-43f4f7f
     restart: unless-stopped
-    networks:
-      - supabase_internal
     healthcheck:
       test:
         [
@@ -64,8 +62,6 @@ services:
   kong:
     image: kong:2.8.1
     restart: unless-stopped
-    networks:
-      - supabase_internal
     ports:
       - ${KONG_HTTP_PORT}:8000/tcp
       - ${KONG_HTTPS_PORT}:8443/tcp
@@ -80,7 +76,6 @@ services:
       KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
       # https://github.com/supabase/cli/issues/14
       KONG_DNS_ORDER: LAST,A,CNAME
-      KONG_DNS_RESOLVER: 127.0.0.11
       KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth,request-termination,ip-restriction
       KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
       KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
@@ -94,8 +89,6 @@ services:
   auth:
     image: supabase/gotrue:v2.184.0
     restart: unless-stopped
-    networks:
-      - supabase_internal
     healthcheck:
       test:
         [
@@ -182,8 +175,6 @@ services:
   rest:
     image: postgrest/postgrest:v14.1
     restart: unless-stopped
-    networks:
-      - supabase_internal
     depends_on:
       db:
         # Disable this if you are using an external Postgres database
@@ -207,8 +198,6 @@ services:
     # This container name looks inconsistent but is correct because realtime constructs tenant id by parsing the subdomain
     image: supabase/realtime:v2.68.0
     restart: unless-stopped
-    networks:
-      - supabase_internal
     depends_on:
       db:
         # Disable this if you are using an external Postgres database
@@ -246,8 +235,6 @@ services:
   storage:
     image: supabase/storage-api:v1.33.0
     restart: unless-stopped
-    networks:
-      - supabase_internal
     volumes:
       - ./volumes/storage:/var/lib/storage:z
     healthcheck:
@@ -291,8 +278,6 @@ services:
   imgproxy:
     image: darthsim/imgproxy:v3.8.0
     restart: unless-stopped
-    networks:
-      - supabase_internal
     volumes:
       - ./volumes/storage:/var/lib/storage:z
     healthcheck:
@@ -314,8 +299,6 @@ services:
   meta:
     image: supabase/postgres-meta:v0.95.1
     restart: unless-stopped
-    networks:
-      - supabase_internal
     depends_on:
       db:
         # Disable this if you are using an external Postgres database
@@ -334,8 +317,6 @@ services:
   functions:
     image: supabase/edge-runtime:v1.69.28
     restart: unless-stopped
-    networks:
-      - supabase_internal
     volumes:
       - ./volumes/functions:/home/deno/functions:Z
     depends_on:
@@ -359,8 +340,6 @@ services:
   analytics:
     image: supabase/logflare:1.27.0
     restart: unless-stopped
-    networks:
-      - supabase_internal
     ports:
       - ${ANALYTICS_PORT:-4000}:4000
     # Uncomment to use Big Query backend for analytics
@@ -408,8 +387,6 @@ services:
   db:
     image: supabase/postgres:15.8.1.085
     restart: unless-stopped
-    networks:
-      - supabase_internal
     volumes:
       - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
       # Must be superuser to create event trigger
@@ -466,8 +443,6 @@ services:
   vector:
     image: timberio/vector:0.28.1-alpine
     restart: unless-stopped
-    networks:
-      - supabase_internal
     volumes:
       - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro,z
       - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro,z
@@ -498,10 +473,8 @@ services:
   supavisor:
     image: supabase/supavisor:2.7.4
     restart: unless-stopped
-    networks:
-      - supabase_internal
     ports:
-      - ${POSTGRES_EXTERNAL_PORT}:5432
+      - ${POSTGRES_PORT}:5432
       - ${POOLER_PROXY_PORT_TRANSACTION}:6543
     volumes:
       - ./volumes/pooler/pooler.exs:/etc/pooler/pooler.exs:ro,z
@@ -551,6 +524,3 @@ services:
 
 volumes:
   db-config:
-
-networks:
-  supabase_internal:
